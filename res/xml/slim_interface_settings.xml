@@ -38,12 +38,12 @@
          android:key="button_settings"
          android:title="@string/button_pref_title"
          android:fragment="com.android.settings.ButtonSettings" />
-                                
+
       <PreferenceScreen
          android:key="power_menu"
          android:title="@string/power_menu_title"
          android:fragment="com.android.settings.cyanogenmod.PowerMenuActions" />
-         
+
       <PreferenceScreen
         android:key="lockscreen_tweaks"
         android:title="@string/lockscreen_tweaks_title"
@@ -53,7 +53,7 @@
         android:key="navigation_settings"
         android:fragment="com.android.settings.slim.NavigationSettings"
         android:title="@string/navigation_settings_title"			/>
-        
+
     <PreferenceScreen
         android:key="device_specific_gesture_settings"
         android:title="@string/gesture_settings_title" >
@@ -61,7 +61,13 @@
             android:action="com.cyanogenmod.action.LAUNCH_TOUCHSCREEN_GESTURE_SETTINGS"
             android:targetPackage="com.cyanogenmod.settings.device"
             android:targetClass="com.cyanogenmod.settings.device.TouchscreenGestureSettings" />
-     	</PreferenceScreen>    
+     	</PreferenceScreen>
+
+      <PreferenceScreen
+          android:key="weather"
+          android:fragment="com.android.settings.tipsy.Weather"
+          android:title="@string/weather_category" />
+	    </PreferenceScreen>    
 
        <!-- Notification Slider -->
      <PreferenceScreen
@@ -72,5 +78,5 @@
                     android:targetPackage="com.cyanogenmod.settings.device"
                     android:targetClass="com.cyanogenmod.settings.device.SliderSettings" />
        </PreferenceScreen>
- 
+
 </PreferenceScreen>
