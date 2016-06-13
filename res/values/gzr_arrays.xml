@@ -11,7 +11,7 @@
      limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    
+
     <!-- HW Key Rebinding -->
     <string-array name="shortcut_action_hwkey_entries">
         <item>@string/shortcut_action_back</item>
@@ -360,23 +360,8 @@
         <item>5</item>
     </string-array>
 
-    <!-- Power menu Animations  -->
-    <string-array name="power_menu_animations_entries">
-        <item>@string/power_menu_animation_aosp</item>
-        <item>@string/power_menu_animation_bottom</item>
-        <item>@string/power_menu_animation_top</item>
-	<item>@string/power_menu_animation_rotate</item>
-    </string-array>
-
-    <string-array name="power_menu_animations_values" translatable="false">
-        <item>0</item>
-        <item>1</item>
-        <item>2</item>
-        <item>3</item>
-    </string-array>
-
     <!-- Statusbar font styles -->
-    <string-array name="status_bar_font_style_entries">
+    <!-- <string-array name="status_bar_font_style_entries">
         <item>@string/status_bar_weather_font_normal</item>
         <item>@string/status_bar_weather_font_italic</item>
         <item>@string/status_bar_weather_font_bold</item>
@@ -395,7 +380,7 @@
         <item>@string/status_bar_weather_font_medium_italic</item>
         <item>@string/status_bar_weather_font_black</item>
         <item>@string/status_bar_weather_font_black_italic</item>
-    </string-array>
+    </string-array> -->
 
     <string-array name="status_bar_font_style_values" translatable="false">
         <item>0</item>
@@ -445,4 +430,3 @@
     </string-array>
 
 </resources>
-
