@@ -1295,6 +1295,15 @@ public class SettingsActivity extends Activity
                     if (!hasPrintingSupport) {
                         removeTile = true;
                     }
+                } else if (id == R.id.bitsyko_layers) {
+                   boolean supported = false;
+                   try {
+                     supported = (getPackageManager().getPackageInfo("com.lovejoy777.rroandlayersmanager", 0).versionCode > 0);
+                   } catch (PackageManager.NameNotFoundException e) {
+                   }
+                   if (!supported) {
+                     removeTile = true;
+                   }
                 } else if (id == R.id.development_settings) {
                     if (!showDev || um.hasUserRestriction(
                             UserManager.DISALLOW_DEBUGGING_FEATURES)) {
