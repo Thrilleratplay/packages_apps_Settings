@@ -58,6 +58,7 @@ import android.os.UserHandle;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
+import android.preference.PreferenceCategory;
 import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
 import android.provider.SearchIndexableResource;
@@ -75,6 +76,8 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slim.provider.SlimSettings;
+
 public class DisplaySettings extends SettingsPreferenceFragment implements
         Preference.OnPreferenceChangeListener, OnPreferenceClickListener, Indexable {
     private static final String TAG = "DisplaySettings";
@@ -87,7 +90,6 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
     private static final String KEY_FONT_SIZE = "font_size";
     private static final String KEY_SCREEN_SAVER = "screensaver";
     private static final String KEY_LIFT_TO_WAKE = "lift_to_wake";
-    private static final String KEY_DOZE = "doze";
     private static final String KEY_TAP_TO_WAKE = "tap_to_wake";
     private static final String KEY_AUTO_BRIGHTNESS = "auto_brightness";
     private static final String KEY_AUTO_ROTATE = "auto_rotate";
@@ -95,22 +97,35 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
     private static final String KEY_CAMERA_GESTURE = "camera_gesture";
     private static final String KEY_CAMERA_DOUBLE_TAP_POWER_GESTURE
             = "camera_double_tap_power_gesture";
+    private static final String KEY_WAKEUP_WHEN_PLUGGED_UNPLUGGED = "wakeup_when_plugged_unplugged";
+    private static final String KEY_WAKEUP_CATEGORY = "category_wakeup_options";
+    private static final String KEY_PROXIMITY_WAKE = "proximity_on_wake";
 
     private static final int DLG_GLOBAL_CHANGE_WARNING = 1;
 
     private WarnedListPreference mFontSizePref;
+
+    private static final String KEY_DOZE_CATEGORY = "category_doze_options";
+    private static final String KEY_DOZE = "doze";
+    private static final String KEY_ADVANCED_DOZE_OPTIONS = "advanced_doze_options";
+
+    private SwitchPreference mWakeUpWhenPluggedOrUnplugged;
+    private PreferenceCategory mWakeUpOptions;
 
     private final Configuration mCurConfig = new Configuration();
     private ListPreference mScreenTimeoutPreference;
     private ListPreference mNightModePreference;
     private Preference mScreenSaverPreference;
     private SwitchPreference mLiftToWakePreference;
-    private SwitchPreference mDozePreference;
     private SwitchPreference mTapToWakePreference;
     private SwitchPreference mAutoBrightnessPreference;
     private SwitchPreference mCameraGesturePreference;
     private SwitchPreference mCameraDoubleTapPowerGesturePreference;
     private ListPreference mLcdDensityPreference;
+    private PreferenceCategory mDozeCategory;
+    private SwitchPreference mDozePreference;
+    private PreferenceScreen mAdvancedDozeOptions;
+    private SwitchPreference mProximityCheckOnWakePreference;
 
     @Override
     protected int getMetricsCategory() {
@@ -124,6 +139,8 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
         final ContentResolver resolver = activity.getContentResolver();
 
         addPreferencesFromResource(R.xml.display_settings);
+
+        PreferenceScreen prefSet = getPreferenceScreen();
 
         mScreenSaverPreference = findPreference(KEY_SCREEN_SAVER);
         if (mScreenSaverPreference != null
@@ -197,11 +214,13 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
             removePreference(KEY_LIFT_TO_WAKE);
         }
 
+        mDozeCategory = (PreferenceCategory) findPreference(KEY_DOZE_CATEGORY);
         if (isDozeAvailable(activity)) {
+            // Doze master switch
             mDozePreference = (SwitchPreference) findPreference(KEY_DOZE);
             mDozePreference.setOnPreferenceChangeListener(this);
         } else {
-            removePreference(KEY_DOZE);
+            prefSet.removePreference(mDozeCategory);
         }
 
         if (isTapToWakeAvailable(getResources())) {
@@ -272,6 +291,32 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
             mNightModePreference.setValue(String.valueOf(currentNightMode));
             mNightModePreference.setOnPreferenceChangeListener(this);
         }
+
+        mWakeUpOptions = (PreferenceCategory) prefSet.findPreference(KEY_WAKEUP_CATEGORY);
+        mWakeUpWhenPluggedOrUnplugged =
+            (SwitchPreference) findPreference(KEY_WAKEUP_WHEN_PLUGGED_UNPLUGGED);
+
+        // hide option if device is already set to never wake up
+        if(!getResources().getBoolean(
+                com.android.internal.R.bool.config_unplugTurnsOnScreen)) {
+                mWakeUpOptions.removePreference(mWakeUpWhenPluggedOrUnplugged);
+                prefSet.removePreference(mWakeUpOptions);
+        } else {
+            mWakeUpWhenPluggedOrUnplugged.setChecked(SlimSettings.System.getInt(resolver,
+                        SlimSettings.System.WAKEUP_WHEN_PLUGGED_UNPLUGGED, 1) == 1);
+            mWakeUpWhenPluggedOrUnplugged.setOnPreferenceChangeListener(this);
+        }
+
+        mProximityCheckOnWakePreference = (SwitchPreference) findPreference(KEY_PROXIMITY_WAKE);
+        boolean proximityCheckOnWake = getResources().getBoolean(
+                com.android.internal.R.bool.config_proximityCheckOnWake);
+        if (!proximityCheckOnWake) {
+            if (mProximityCheckOnWakePreference != null) {
+                mWakeUpOptions.removePreference(mProximityCheckOnWakePreference);
+            }
+            SlimSettings.System.putInt(resolver, SlimSettings.System.PROXIMITY_ON_WAKE, 0);
+        }
+
     }
 
     private int getDefaultDensity() {
@@ -624,6 +669,12 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
                 Log.e(TAG, "could not persist night mode setting", e);
             }
         }
+        if (KEY_WAKEUP_WHEN_PLUGGED_UNPLUGGED.equals(key)) {
+            SlimSettings.System.putInt(getContentResolver(),
+                    SlimSettings.System.WAKEUP_WHEN_PLUGGED_UNPLUGGED,
+                    (Boolean) objValue ? 1 : 0);
+        }
+
         return true;
     }
 
@@ -695,6 +746,7 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
                     }
                     if (!isDozeAvailable(context)) {
                         result.add(KEY_DOZE);
+                        result.add(KEY_ADVANCED_DOZE_OPTIONS);
                     }
                     if (!RotationPolicy.isRotationLockToggleVisible(context)) {
                         result.add(KEY_AUTO_ROTATE);
